@@ -50,10 +50,12 @@ body {
   .form-input {
     @apply border border-neutral-300 rounded-md p-2;
   }
+  .error-input {
+    @apply border-red outline-red;
+  }
 }
 
 /* Vite defaults: */
-
 /* #root
 /* margin: 0 auto; */
 /* padding: 2rem; */
