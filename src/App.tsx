@@ -8,11 +8,8 @@ import ThankYouMessage from './components/ThankYouMessage'
 interface IFormInputs {
   name: string
   card: string
-  month: number
-  year: number
-  // cvc: number
-  // month: string
-  // year: string
+  month: number | string
+  year: number | string
   cvc: string
 }
 
@@ -23,8 +20,13 @@ const schema = yup
     card: yup
       .string()
       .required('Credit card number is required')
-      .matches(/^\d{16}$/, 'Credit card number must be 16 digits'),
-    // month: yup.number().positive().integer().required(),
+      // .matches(/^\d{16}$/, 'Credit card number must be 16 digits'), // ! not work after added credit card number spacing
+      .matches(
+        // /^\d{4}(?:[-\s]\d{4}){3}$/,
+        /^\d{4}\s*\d{4}\s*\d{4}\s*\d{4}$/,
+        'Credit card number must be 16 digits'
+        // ! on valid re-enter not clear error msg?
+      ),
     month: yup.number().min(1).max(12),
     year: yup.number().min(23).max(28),
     cvc: yup.string().matches(/^\d{3}$/)
@@ -38,10 +40,32 @@ function App() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors }
   } = useForm<IFormInputs>({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema),
+    defaultValues: {
+      name: '',
+      card: '',
+      month: '',
+      year: '',
+      cvc: ''
+    }
   })
+
+  const watchAllFields = watch() // when pass nothing as argument, you are watching everything
+  console.log(watchAllFields)
+  const { name, card, month, year, cvc } = watchAllFields
+
+  const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val =
+      e.target.value
+        .replace(/\s|[^0-9]+/g, '')
+        .match(/.{1,4}/g)
+        ?.join(' ') ?? ''
+    console.log({ val })
+    setValue('card', val)
+  }
 
   const onSubmit: SubmitHandler<IFormInputs> = (data) => {
     console.log(data)
@@ -62,7 +86,7 @@ function App() {
         {/* Card - Back */}
         <div className='card--back w-[300px] h-[164px] bg-cover absolute right-4 top-8 md:right-[-26%] md:top-[22rem]'>
           <div className='card-content relative'>
-            <div className='absolute right-8 top-[70px] text-sm'>000</div>
+            <div className='absolute right-8 top-[70px] text-sm'>{cvc || '000'}</div>
           </div>
         </div>
         {/* Card - Front */}
@@ -71,11 +95,19 @@ function App() {
             <img src={cardLogo} className='card-logo w-[45px]' alt='' />
             <div className='mt-auto'>
               <div className='text-xl font-semibold tracking-widest mb-1'>
-                0000 0000 0000 0000
+                {card || '0000 0000 0000 0000'}
               </div>
               <div className='flex justify-between text-sm'>
-                <div className='uppercase'>Jane Appleseed</div>
-                <div> 00/00 </div>
+                <div className='uppercase break-all max-w-[12rem]'>
+                  {name || 'Jane Appleseed'}
+                </div>
+                <div className='max-w-[6rem] overflow-hidden flex items-end'>
+                  <div className='max-w-[2rem] overflow-hidden'>
+                    {month < 10 && month > 0 ? '0' + month : month || '00'}
+                    {/* add leading zero for months */}
+                  </div>
+                  /<div className='max-w-[2rem] overflow-hidden'> {year || '00'}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -102,6 +134,7 @@ function App() {
               className={['form-input', errors.name ? 'error-input' : ''].join(' ')}
               {...register('name', { required: true })}
               aria-invalid={errors.name ? 'true' : 'false'}
+              maxLength={40}
             />
             {/* {errors.name?.type === 'required' && ( */}
             {errors.name && (
@@ -122,8 +155,7 @@ function App() {
               // type='number'
               // name='card-number'
               type='text'
-              pattern='\d*'
-              // ^ limits input after 16characters
+              // pattern='\d*'
               id='card-number'
               placeholder='e.g. 1234 5678 9123 0000'
               className={['form-input', errors.card ? 'error-input' : ''].join(' ')}
@@ -131,8 +163,10 @@ function App() {
               aria-invalid={errors.card ? 'true' : 'false'}
               // min={0}
               // minLength={16}
-              maxLength={16}
+              // maxLength={16}
+              maxLength={19}
               // required
+              onChange={handleCardChange}
             />
             {/* {errors.card?.type === 'required' && ( */}
             {errors.card?.message && (
@@ -162,14 +196,20 @@ function App() {
                   min={1}
                   max={12}
                   minLength={2}
-                  maxLength={2}
-                  // ^ not work with type number
+                  maxLength={2} // doesn't work with type number
                   placeholder='MM'
                   className={['w-1/2 form-input', errors.month ? 'error-input' : ''].join(
                     ' '
                   )}
                   aria-invalid={errors.month ? 'true' : 'false'}
-                  {...register('month', { required: true })}
+                  {...register('month', {
+                    required: true,
+                    maxLength: 2
+                    // valueAsNumber: true
+                    // pattern: {
+                    // value: /^(0|[1-9]\d*)(\.\d+)?$/
+                    // },
+                  })}
                 />
                 <input
                   type='number'
@@ -179,14 +219,14 @@ function App() {
                   id='year'
                   placeholder='YY'
                   minLength={2}
-                  maxLength={2}
-                  // ^ not work with type number
+                  maxLength={2} // doesn't work with type number
                   min={23} // minimal card year expiry date?
+                  max={28}
                   className={['w-1/2 form-input', errors.year ? 'error-input' : ''].join(
                     ' '
                   )}
                   aria-invalid={errors.year ? 'true' : 'false'}
-                  {...register('year', { required: true })}
+                  {...register('year', { required: true, maxLength: 2 })}
                 />
               </div>
             </div>
@@ -206,8 +246,7 @@ function App() {
                 id='cvc'
                 placeholder='e.g. 123'
                 minLength={3}
-                maxLength={3}
-                // ^ not work with type number
+                maxLength={3} // doesn't work with type number
                 // min={0}
                 className={['form-input', errors.cvc ? 'error-input' : ''].join(' ')}
                 {...register('cvc', { required: true })}
