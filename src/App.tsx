@@ -3,10 +3,10 @@ import { FormEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import cardLogo from './assets/images/card-logo.svg'
+import ThankYouMessage from './components/ThankYouMessage'
 
 interface IFormInputs {
   name: string
-  // card: number
   card: string
   month: number
   year: number
@@ -25,27 +25,15 @@ const schema = yup
       .required('Credit card number is required')
       .matches(/^\d{16}$/, 'Credit card number must be 16 digits'),
     // month: yup.number().positive().integer().required(),
-    // year: yup.number().positive().integer().required(),
-    // cvc: yup.number().positive().integer().required()
     month: yup.number().min(1).max(12),
     year: yup.number().min(23).max(28),
     cvc: yup.string().matches(/^\d{3}$/)
-    // month: yup
-    //   .string()
-    //   .required('Credit card number is required')
-    //   .matches(/^\d{2}$/),
-    // year: yup
-    //   .string()
-    //   .required('Credit card number is required')
-    //   .matches(/^\d{2}$/),
-    // cvc: yup
-    //   .string()
-    //   .required('Credit card number is required')
-    //   .matches(/^\d{3}$/)
   })
   .required()
 
 function App() {
+  const [data, setData] = useState<IFormInputs>()
+
   const {
     register,
     handleSubmit,
@@ -57,6 +45,14 @@ function App() {
 
   const onSubmit: SubmitHandler<IFormInputs> = (data) => {
     console.log(data)
+    // {
+    // "cvc": "123",
+    // "year": 24,
+    // "month": 4,
+    // "card": "1312313133232312",
+    // "name": "ewerewr"
+    // }
+    setData(data)
   }
 
   return (
@@ -85,169 +81,165 @@ function App() {
           </div>
         </div>
       </div>
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className='mt-20 p-4 flex flex-col mx-auto md:w-full max-w-[400px] md:ml-28 lg:mx-auto md:mt-36'
-      >
-        {/* Name */}
-        <div className='input-container mb-4 flex flex-col gap-2'>
-          <label
-            htmlFor='name'
-            className='uppercase text-violet-dark tracking-widest text-sm font-semibold'
-          >
-            Cardholder Name
-          </label>
-          <input
-            type='text'
-            // name='name'
-            id='name'
-            placeholder='e.g. Jane Anderson'
-            className={['form-input', errors.name ? 'error-input' : ''].join(' ')}
-            {...register('name', { required: true })}
-            aria-invalid={errors.name ? 'true' : 'false'}
-          />
-          {/* {errors.name?.type === 'required' && ( */}
-          {errors.name && (
-            <p role='alert' className='text-red'>
-              Name is required
-            </p>
-          )}
-        </div>
-        {/* Card */}
-        <div className='input-container mb-4 flex flex-col gap-2'>
-          <label
-            htmlFor='card-number'
-            className='uppercase text-violet-dark tracking-widest text-sm font-semibold'
-          >
-            Card number
-          </label>
-          <input
-            // type='number'
-            // name='card-number'
-            type='text'
-            pattern='\d*'
-            // ^ limits input after 16characters
-            id='card-number'
-            placeholder='e.g. 1234 5678 9123 0000'
-            className={['form-input', errors.card ? 'error-input' : ''].join(' ')}
-            {...register('card', { required: true })}
-            aria-invalid={errors.card ? 'true' : 'false'}
-            // min={0}
-            // minLength={16}
-            maxLength={16}
-            // required
-          />
-          {/* {errors.card?.type === 'required' && ( */}
-          {errors.card?.message && (
-            <p role='alert' className='text-red'>
-              {/* Card number is required */}
-              {errors.card.message}
-            </p>
-          )}
-        </div>
-        {/* <div className='flex gap-2'> */}
-        <div className='flex gap-4'>
-          {/* Expiry Date */}
-          <div className='flex flex-col gap-2 w-1/2 justify-between relative'>
+      {!data ? (
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className='mt-20 p-4 flex flex-col mx-auto md:w-full max-w-[25rem] md:ml-28 lg:mx-auto md:mt-36'
+        >
+          {/* Name */}
+          <div className='input-container mb-4 flex flex-col gap-2'>
             <label
-              htmlFor='month'
+              htmlFor='name'
               className='uppercase text-violet-dark tracking-widest text-sm font-semibold'
             >
-              Exp. date (MM/YY)
+              Cardholder Name
             </label>
-            <div className='flex gap-2'>
-              <input
-                type='number'
-                // name='month'
-                // type='text'
-                // pattern='\d*'
-                id='month'
-                min={1}
-                max={12}
-                minLength={2}
-                maxLength={2}
-                // ^ not work with type number
-                placeholder='MM'
-                className={['w-1/2 form-input', errors.month ? 'error-input' : ''].join(
-                  ' '
-                )}
-                aria-invalid={errors.month ? 'true' : 'false'}
-                {...register('month', { required: true })}
-              />
-              <input
-                type='number'
-                // name='year'
-                // type='text'
-                // pattern='\d*'
-                // ^ limits input after 2characters
-                id='year'
-                placeholder='YY'
-                minLength={2}
-                maxLength={2}
-                // ^ not work with type number
-                min={23} // minimal card year expiry date?
-                className={['w-1/2 form-input', errors.year ? 'error-input' : ''].join(
-                  ' '
-                )}
-                aria-invalid={errors.year ? 'true' : 'false'}
-                {...register('year', { required: true })}
-              />
-            </div>
+            <input
+              type='text'
+              // name='name'
+              id='name'
+              placeholder='e.g. Jane Anderson'
+              className={['form-input', errors.name ? 'error-input' : ''].join(' ')}
+              {...register('name', { required: true })}
+              aria-invalid={errors.name ? 'true' : 'false'}
+            />
+            {/* {errors.name?.type === 'required' && ( */}
+            {errors.name && (
+              <p role='alert' className='text-red'>
+                Name is required
+              </p>
+            )}
           </div>
-          {/* CVC */}
-          <div className='flex flex-col gap-2 w-1/2 justify-between relative'>
+          {/* Card */}
+          <div className='input-container mb-4 flex flex-col gap-2'>
             <label
-              htmlFor='cvc'
+              htmlFor='card-number'
               className='uppercase text-violet-dark tracking-widest text-sm font-semibold'
             >
-              CVC
+              Card number
             </label>
             <input
               // type='number'
-              // name='cvc'
+              // name='card-number'
               type='text'
               pattern='\d*'
-              // ^ limits input after 3characters
-              id='cvc'
-              placeholder='e.g. 123'
-              minLength={3}
-              maxLength={3}
-              // ^ not work with type number
+              // ^ limits input after 16characters
+              id='card-number'
+              placeholder='e.g. 1234 5678 9123 0000'
+              className={['form-input', errors.card ? 'error-input' : ''].join(' ')}
+              {...register('card', { required: true })}
+              aria-invalid={errors.card ? 'true' : 'false'}
               // min={0}
-              className={['form-input', errors.cvc ? 'error-input' : ''].join(' ')}
-              {...register('cvc', { required: true })}
-              aria-invalid={errors.cvc ? 'true' : 'false'}
+              // minLength={16}
+              maxLength={16}
+              // required
             />
-          </div>
-        </div>
-        {(errors.month || errors.year || errors.cvc) && (
-          <div className='flex gap-2'>
-            {/* {(errors.month?.type === 'required' || errors.year?.type === 'required') && ( */}
-            {(errors.month || errors.year) && (
-              <p role='alert' className='text-red  top-full mt-2'>
-                Expiry date is required
-              </p>
-            )}
-            {/* {errors.cvc?.type === 'required' && ( */}
-            {errors.cvc && (
-              <p role='alert' className='text-red top-full mt-2'>
-                CVC number is required
+            {/* {errors.card?.type === 'required' && ( */}
+            {errors.card?.message && (
+              <p role='alert' className='text-red'>
+                {/* Card number is required */}
+                {errors.card.message}
               </p>
             )}
           </div>
-        )}
-        <button
-          type='submit'
-          className='bg-violet-dark text-white mt-6 py-4 rounded-md hover:bg-violet-dark/90 focus-visible:bg-violet-dark/90'
-        >
-          Confirm
-        </button>
-      </form>
-      {/* Thank you message after submit */}
-      {/* Thank you!
-      We've added your card details
-      Continue */}
+          {/* <div className='flex gap-2'> */}
+          <div className='flex gap-4'>
+            {/* Expiry Date */}
+            <div className='flex flex-col gap-2 w-1/2 justify-between relative'>
+              <label
+                htmlFor='month'
+                className='uppercase text-violet-dark tracking-widest text-sm font-semibold'
+              >
+                Exp. date (MM/YY)
+              </label>
+              <div className='flex gap-2'>
+                <input
+                  type='number'
+                  // name='month'
+                  // type='text'
+                  // pattern='\d*'
+                  id='month'
+                  min={1}
+                  max={12}
+                  minLength={2}
+                  maxLength={2}
+                  // ^ not work with type number
+                  placeholder='MM'
+                  className={['w-1/2 form-input', errors.month ? 'error-input' : ''].join(
+                    ' '
+                  )}
+                  aria-invalid={errors.month ? 'true' : 'false'}
+                  {...register('month', { required: true })}
+                />
+                <input
+                  type='number'
+                  // name='year'
+                  // type='text'
+                  // pattern='\d*'
+                  id='year'
+                  placeholder='YY'
+                  minLength={2}
+                  maxLength={2}
+                  // ^ not work with type number
+                  min={23} // minimal card year expiry date?
+                  className={['w-1/2 form-input', errors.year ? 'error-input' : ''].join(
+                    ' '
+                  )}
+                  aria-invalid={errors.year ? 'true' : 'false'}
+                  {...register('year', { required: true })}
+                />
+              </div>
+            </div>
+            {/* CVC */}
+            <div className='flex flex-col gap-2 w-1/2 justify-between relative'>
+              <label
+                htmlFor='cvc'
+                className='uppercase text-violet-dark tracking-widest text-sm font-semibold'
+              >
+                CVC
+              </label>
+              <input
+                // type='number'
+                // name='cvc'
+                type='text'
+                pattern='\d*'
+                id='cvc'
+                placeholder='e.g. 123'
+                minLength={3}
+                maxLength={3}
+                // ^ not work with type number
+                // min={0}
+                className={['form-input', errors.cvc ? 'error-input' : ''].join(' ')}
+                {...register('cvc', { required: true })}
+                aria-invalid={errors.cvc ? 'true' : 'false'}
+              />
+            </div>
+          </div>
+          {(errors.month || errors.year || errors.cvc) && (
+            <div className='flex gap-2'>
+              {(errors.month || errors.year) && (
+                <p role='alert' className='text-red  top-full mt-2'>
+                  Expiry date is required
+                </p>
+              )}
+              {/* {errors.cvc?.type === 'required' && ( */}
+              {errors.cvc && (
+                <p role='alert' className='text-red top-full mt-2'>
+                  CVC number is required
+                </p>
+              )}
+            </div>
+          )}
+          <button
+            type='submit'
+            className='bg-violet-dark text-white mt-6 py-4 rounded-md hover:bg-violet-dark/90 focus-visible:bg-violet-dark/90'
+          >
+            Confirm
+          </button>
+        </form>
+      ) : (
+        <ThankYouMessage />
+      )}
     </div>
   )
 }
